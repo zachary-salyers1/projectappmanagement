@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Project, BillingService, projectsApi, billingApi, filesApi } from '../services/api';
+import { Project, BillingService, projectsApi, billingApi } from '../services/api';
 import { useAuth } from '../auth/AuthProvider';
 
 const BillingPage: React.FC = () => {

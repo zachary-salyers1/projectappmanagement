@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Project, Task, projectsApi, tasksApi, filesApi } from '../services/api';
+import { Project, Task, projectsApi, tasksApi } from '../services/api';
 import { useAuth } from '../auth/AuthProvider';
 
 const TasksPage: React.FC = () => {

@@ -1,0 +1,21 @@
+{
+  "name": "projectflow-api",
+  "version": "1.0.0",
+  "description": "ProjectFlow API using Azure Functions",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "prestart": "npm run build",
+    "start": "func start",
+    "test": "echo \"No tests specified\""
+  },
+  "dependencies": {
+    "@azure/functions": "^4.0.0",
+    "@azure/identity": "^3.2.1",
+    "mssql": "^9.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.x",
+    "typescript": "^4.9.5"
+  }
+} 
