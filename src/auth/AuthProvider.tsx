@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useMsal } from '@azure/msal-react';
 
 interface User {
   displayName: string;
