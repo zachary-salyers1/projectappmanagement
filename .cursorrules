@@ -1,0 +1,131 @@
+version: "1"
+
+# 1. Initialize the front-end
+init:
+  - description: "Create Vite + React + TS scaffold"
+    run: npm init vite@latest . -- --template react-ts
+  - description: "Install runtime dependencies"
+    run: npm install @azure/identity mssql
+
+# 2. Define file structure and content
+structure:
+  - path: .gitignore
+    content: |
+      node_modules/
+      dist/
+      .env*
+  - path: README.md
+    content: |
+      # ProjectFlow
+
+      A lightweight project management app with OneDrive integration.
+      - SPA: Vite + React + TypeScript
+      - API: Azure Functions w/ Managed Identity for Graph & SQL
+      - Local dev: SWA CLI + Functions Core Tools
+
+      ## Azure Setup
+      1. Static Web App + AAD auth  
+      2. SQL Server (Entra-only) + Managed Identity  
+      3. Functions w/ MI + Graph permissions  
+      4. Connection string in SWA env vars
+
+  - path: vite.config.ts
+    template: |
+      import { defineConfig } from 'vite';
+      import react from '@vitejs/plugin-react';
+      export default defineConfig({ plugins: [react()] });
+
+  - path: tsconfig.json
+    template: |
+      {
+        "compilerOptions": {
+          "target": "ESNext",
+          "module": "ESNext",
+          "jsx": "react-jsx",
+          "moduleResolution": "node",
+          "strict": true,
+          "baseUrl": ".",
+          "paths": { "~/*": ["src/*"] }
+        },
+        "include": ["src", "api"]
+      }
+
+  - path: api/local.settings.json
+    content: |
+      {
+        "IsEncrypted": false,
+        "Values": {
+          "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+          "FUNCTIONS_WORKER_RUNTIME": "node"
+        }
+      }
+
+  - path: api/db-test/function.json
+    content: |
+      {
+        "bindings": [
+          {
+            "authLevel": "anonymous",
+            "type": "httpTrigger",
+            "direction": "in",
+            "name": "req",
+            "methods": ["get"]
+          },
+          {
+            "type": "http",
+            "direction": "out",
+            "name": "res"
+          }
+        ]
+      }
+
+  - path: api/db-test/index.ts
+    template: |
+      import { AzureFunction, Context, HttpRequest } from "@azure/functions";
+      import { DefaultAzureCredential } from "@azure/identity";
+      import * as sql from "mssql";
+
+      const dbTest: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
+        const cred = new DefaultAzureCredential();
+        const token = await cred.getToken("https://database.windows.net/.default");
+        const connStr = process.env["SQLCONNSTR_SqlConnectionString"]!;
+        const config: sql.config = {
+          connectionString: connStr,
+          options: { encrypt: true },
+          authentication: {
+            type: "azure-active-directory-access-token",
+            options: { token: token.token }
+          }
+        };
+        try {
+          await sql.connect(config);
+          const result = await sql.query`SELECT 1 AS isConnected`;
+          context.res = { status: 200, body: result.recordset[0] };
+        } catch (e) {
+          context.log.error(e);
+          context.res = { status: 500, body: e.message };
+        }
+      };
+
+      export default dbTest;
+
+# 3. Add package.json scripts if missing
+patch:
+  - description: "Ensure package.json has necessary scripts"
+    file: package.json
+    jsonPatch:
+      - op: add
+        path: /scripts/dev
+        value: "vite"
+      - op: add
+        path: /scripts/build
+        value: "vite build"
+      - op: add
+        path: /scripts/preview
+        value: "vite preview"
+      - op: add
+        path: /scripts/start:api
+        value: "func start --script-root api"
+      - op: add
+        path: /scripts/swa:start
+        value: "swa start http://localhost:3000 --api-location api"
