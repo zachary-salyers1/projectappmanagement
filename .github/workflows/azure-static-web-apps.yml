@@ -47,6 +47,8 @@ jobs:
           api_location: "api"
           # Output folder of your built application
           output_location: "dist"
+          # API build command
+          api_build_command: "npm run build"
           # Optional: Skip building the API
           # skip_api_build: true
 
