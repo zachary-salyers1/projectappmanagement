@@ -1,7 +1,7 @@
 [
   {
     "name": "Production",
-    "resourceId": "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Sql/servers/<server-name>/databases/<database-name>",
+    "resourceId": "/subscriptions/<de9edb4d-df0f-407a-a144-c65d9b2f98e3>/resourceGroups/<Salyersai>/providers/Microsoft.Sql/servers/<salyersaipmapp.database.windows.net>/databases/<ProjectManageApp>",
     "authentication": {
       "type": "systemAssignedManagedIdentity"
     }
