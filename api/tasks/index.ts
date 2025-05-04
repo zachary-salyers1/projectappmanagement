@@ -1,7 +1,7 @@
 import { HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 
 // Mock data for development
-const tasks = [
+export const tasks = [
   {
     id: "1",
     projectId: "1",

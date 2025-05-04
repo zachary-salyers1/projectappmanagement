@@ -106,7 +106,11 @@ export const tasksApi = {
   },
   
   create: async (task: Omit<Task, 'id' | 'attachments'>): Promise<Task> => {
-    const response = await fetch(`${API_BASE}/tasks`, {
+    const url = task.projectId
+      ? `${API_BASE}/projects/${task.projectId}/tasks`
+      : `${API_BASE}/tasks`;
+    
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(task),

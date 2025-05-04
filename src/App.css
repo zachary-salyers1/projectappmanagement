@@ -11,14 +11,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 0;
-  border-bottom: 1px solid #e5e5e5;
+  padding: 1rem 2rem;
+  background-color: #6c5ce7;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .app-header h1 {
   margin: 0;
   font-size: 1.5rem;
-  color: #0078d4;
 }
 
 .app-header nav ul {
@@ -28,53 +29,101 @@
   padding: 0;
 }
 
-.app-header nav li {
+.app-header nav ul li {
   margin-left: 1.5rem;
 }
 
-.app-header nav a {
+.app-header nav ul li a {
+  color: white;
   text-decoration: none;
-  color: #333;
-  font-weight: 500;
-  transition: color 0.2s;
+  padding: 0.5rem 0;
 }
 
-.app-header nav a:hover,
-.app-header nav a.active {
-  color: #0078d4;
+.app-header nav ul li a:hover {
+  border-bottom: 2px solid white;
 }
 
 .app-content {
   flex: 1;
-  padding: 2rem 0;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .card {
-  background: white;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  border-radius: 8px;
   padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 1.5rem;
 }
 
+.form-card {
+  margin-bottom: 2rem;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.page-header h2 {
+  margin: 0;
+}
+
 button {
-  background-color: #0078d4;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.primary-button {
+  background-color: #6c5ce7;
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
 }
 
-button:hover {
-  background-color: #106ebe;
+.primary-button:hover {
+  background-color: #5f50d9;
 }
 
-button:disabled {
-  background-color: #c8c8c8;
+.primary-button:disabled {
+  background-color: #a29ddb;
   cursor: not-allowed;
+}
+
+.secondary-button {
+  background-color: #f7f7f7;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.secondary-button:hover {
+  background-color: #eee;
+}
+
+.danger-button {
+  background-color: white;
+  color: #e53935;
+  border: 1px solid #e53935;
+}
+
+.danger-button:hover {
+  background-color: #e53935;
+  color: white;
 }
 
 .form-group {
@@ -88,15 +137,141 @@ button:disabled {
 }
 
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.form-group select {
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
   border-radius: 4px;
+  font-size: 1rem;
 }
 
-.grid {
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.projects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+}
+
+.project-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.project-header {
+  margin-bottom: 0.75rem;
+}
+
+.project-header h3 {
+  margin: 0;
+}
+
+.project-description {
+  margin-bottom: 1rem;
+  flex-grow: 1;
+}
+
+.project-meta {
+  color: #666;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: auto;
+}
+
+.tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.task-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.task-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 0.75rem;
+}
+
+.task-header h3 {
+  margin: 0;
+}
+
+.task-header .completed {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.task-description {
+  margin-bottom: 1rem;
+}
+
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.filter-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  background-color: #f7f7f7;
+  padding: 0.75rem;
+  border-radius: 4px;
+}
+
+.filter-container select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.project-details {
+  background-color: #f7f7f7;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+}
+
+.empty-state h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  margin-bottom: 1.5rem;
+  color: #666;
 }

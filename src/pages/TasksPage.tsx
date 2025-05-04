@@ -1,40 +1,67 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Project, Task, projectsApi, tasksApi } from '../services/api';
 import { useAuth } from '../auth/AuthProvider';
 
 const TasksPage: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const projectIdParam = searchParams.get('projectId');
+  
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | 'all'>('all');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | 'all'>(projectIdParam || 'all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
-    projectId: '',
+    projectId: projectIdParam || '',
     dueDate: ''
   });
   const [isCreating, setIsCreating] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [currentProject, setCurrentProject] = useState<Project | null>(null);
 
+  // Fetch projects and current project information
   useEffect(() => {
-    const fetchInitialData = async () => {
+    const fetchProjects = async () => {
       try {
-        setLoading(true);
-        // Fetch projects
         const projectsData = await projectsApi.getAll();
         setProjects(projectsData);
-        
+
+        // If a specific project is selected, get its details
+        if (selectedProjectId !== 'all') {
+          const projectDetails = projectsData.find(p => p.id === selectedProjectId);
+          setCurrentProject(projectDetails || null);
+        } else {
+          setCurrentProject(null);
+        }
+      } catch (err) {
+        setError('Failed to load projects. Please try again later.');
+        console.error(err);
+      }
+    };
+
+    if (isAuthenticated && !isLoading) {
+      fetchProjects();
+    }
+  }, [isAuthenticated, isLoading, selectedProjectId]);
+
+  // Fetch tasks when selectedProjectId changes
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setLoading(true);
         // Fetch all tasks or tasks for selected project
         const tasksData = selectedProjectId === 'all'
           ? await tasksApi.getAll()
           : await tasksApi.getAll(selectedProjectId);
         setTasks(tasksData);
-        
         setError(null);
       } catch (err) {
-        setError('Failed to load data. Please try again later.');
+        setError('Failed to load tasks. Please try again later.');
         console.error(err);
       } finally {
         setLoading(false);
@@ -42,21 +69,22 @@ const TasksPage: React.FC = () => {
     };
 
     if (isAuthenticated && !isLoading) {
-      fetchInitialData();
+      fetchTasks();
     }
   }, [isAuthenticated, isLoading, selectedProjectId]);
+
+  // Update URL when selected project changes
+  useEffect(() => {
+    if (selectedProjectId === 'all') {
+      navigate('/tasks');
+    } else {
+      navigate(`/tasks?projectId=${selectedProjectId}`);
+    }
+  }, [selectedProjectId, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setNewTask(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
-    } else {
-      setSelectedFile(null);
-    }
   };
 
   const handleCreateTask = async (e: React.FormEvent) => {
@@ -70,17 +98,9 @@ const TasksPage: React.FC = () => {
         title: newTask.title,
         description: newTask.description,
         projectId: newTask.projectId,
-        dueDate: newTask.dueDate,
+        dueDate: newTask.dueDate || '',
         completed: false
       });
-
-      // Upload file if selected
-      if (selectedFile) {
-        // TODO: Implement file upload when backend is ready
-        // This will be handled by the Files API using Microsoft Graph
-        // const fileAttachment = await filesApi.uploadFile(selectedFile, 'task', createdTask.id);
-        console.log('File upload would happen here');
-      }
 
       // Refresh tasks list or add to current list
       if (selectedProjectId === 'all' || selectedProjectId === newTask.projectId) {
@@ -91,10 +111,10 @@ const TasksPage: React.FC = () => {
       setNewTask({
         title: '',
         description: '',
-        projectId: '',
+        projectId: newTask.projectId, // Keep the selected project
         dueDate: ''
       });
-      setSelectedFile(null);
+      setShowForm(false);
       setError(null);
     } catch (err) {
       setError('Failed to create task. Please try again.');
@@ -141,141 +161,192 @@ const TasksPage: React.FC = () => {
   }
 
   return (
-    <div>
-      <h2>Tasks</h2>
+    <div className="tasks-page">
+      <div className="page-header">
+        <h2>
+          {currentProject 
+            ? `Tasks for ${currentProject.title}` 
+            : 'All Tasks'}
+        </h2>
+        <button 
+          className="primary-button"
+          onClick={() => setShowForm(!showForm)}
+          disabled={projects.length === 0}
+        >
+          {showForm ? 'Cancel' : 'New Task'}
+        </button>
+      </div>
       
       {error && <div className="error-message">{error}</div>}
       
-      <div className="card">
-        <h3>Create New Task</h3>
-        <form onSubmit={handleCreateTask}>
-          <div className="form-group">
-            <label htmlFor="projectId">Project</label>
-            <select
-              id="projectId"
-              name="projectId"
-              value={newTask.projectId}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="">Select a project</option>
-              {projects.map(project => (
-                <option key={project.id} value={project.id}>
-                  {project.title}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="title">Title</label>
-            <input
-              type="text"
-              id="title"
-              name="title"
-              value={newTask.title}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="description">Description</label>
-            <textarea
-              id="description"
-              name="description"
-              value={newTask.description}
-              onChange={handleInputChange}
-              rows={3}
-            />
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="dueDate">Due Date</label>
-            <input
-              type="date"
-              id="dueDate"
-              name="dueDate"
-              value={newTask.dueDate}
-              onChange={handleInputChange}
-            />
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="file">Attachment</label>
-            <input
-              type="file"
-              id="file"
-              onChange={handleFileChange}
-            />
-            <small>Upload a file to attach to this task</small>
-          </div>
-          
-          <button 
-            type="submit" 
-            disabled={isCreating || !newTask.title.trim() || !newTask.projectId}
-          >
-            {isCreating ? 'Creating...' : 'Create Task'}
-          </button>
-        </form>
-      </div>
+      {showForm && (
+        <div className="card form-card">
+          <h3>Create New Task</h3>
+          <form onSubmit={handleCreateTask}>
+            <div className="form-group">
+              <label htmlFor="projectId">Project</label>
+              <select
+                id="projectId"
+                name="projectId"
+                value={newTask.projectId}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select a project</option>
+                {projects.map(project => (
+                  <option key={project.id} value={project.id}>
+                    {project.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="title">Title</label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                value={newTask.title}
+                onChange={handleInputChange}
+                required
+                placeholder="Enter task title"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="description">Description</label>
+              <textarea
+                id="description"
+                name="description"
+                value={newTask.description}
+                onChange={handleInputChange}
+                rows={3}
+                placeholder="Enter task description"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="dueDate">Due Date</label>
+              <input
+                type="date"
+                id="dueDate"
+                name="dueDate"
+                value={newTask.dueDate}
+                onChange={handleInputChange}
+              />
+            </div>
+            
+            <div className="form-actions">
+              <button 
+                type="button" 
+                className="secondary-button" 
+                onClick={() => setShowForm(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                className="primary-button"
+                disabled={isCreating || !newTask.title.trim() || !newTask.projectId}
+              >
+                {isCreating ? 'Creating...' : 'Create Task'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
       
-      <div className="filter-container">
-        <label htmlFor="projectFilter">Filter by Project:</label>
-        <select
-          id="projectFilter"
-          value={selectedProjectId}
-          onChange={(e) => setSelectedProjectId(e.target.value)}
-        >
-          <option value="all">All Projects</option>
-          {projects.map(project => (
-            <option key={project.id} value={project.id}>
-              {project.title}
-            </option>
-          ))}
-        </select>
-      </div>
+      {!currentProject && (
+        <div className="filter-container">
+          <label htmlFor="projectFilter">Filter by Project:</label>
+          <select
+            id="projectFilter"
+            value={selectedProjectId}
+            onChange={(e) => setSelectedProjectId(e.target.value)}
+          >
+            <option value="all">All Projects</option>
+            {projects.map(project => (
+              <option key={project.id} value={project.id}>
+                {project.title}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      
+      {currentProject && (
+        <div className="project-details">
+          <p><strong>Description:</strong> {currentProject.description || 'No description'}</p>
+          <button 
+            className="secondary-button"
+            onClick={() => setSelectedProjectId('all')}
+          >
+            Back to All Tasks
+          </button>
+        </div>
+      )}
       
       <div className="tasks-list">
         {tasks.length === 0 ? (
-          <div className="card">No tasks found. Create your first task above.</div>
+          <div className="card empty-state">
+            <h3>No tasks found</h3>
+            {currentProject ? (
+              <p>This project doesn't have any tasks yet.</p>
+            ) : (
+              <p>No tasks found across all projects.</p>
+            )}
+            <button 
+              className="primary-button" 
+              onClick={() => setShowForm(true)}
+              disabled={projects.length === 0}
+            >
+              Create Task
+            </button>
+          </div>
         ) : (
           tasks.map(task => (
-            <div key={task.id} className="card">
+            <div key={task.id} className="task-card">
               <div className="task-header">
-                <h3 style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
+                <input
+                  type="checkbox"
+                  checked={task.completed}
+                  onChange={() => handleToggleComplete(task)}
+                  aria-label="Mark as complete"
+                />
+                <h3 className={task.completed ? 'completed' : ''}>
                   {task.title}
                 </h3>
-                <div className="task-actions">
-                  <button 
-                    onClick={() => handleToggleComplete(task)}
-                    className={task.completed ? 'btn-success' : ''}
-                  >
-                    {task.completed ? 'Completed' : 'Mark Complete'}
-                  </button>
-                  <button onClick={() => handleDeleteTask(task.id)}>Delete</button>
-                </div>
-              </div>
-              <p>{task.description}</p>
-              <div className="task-details">
-                <div>Project: {projects.find(p => p.id === task.projectId)?.title || 'Unknown'}</div>
-                {task.dueDate && <div>Due: {new Date(task.dueDate).toLocaleDateString()}</div>}
               </div>
               
-              {task.attachments && task.attachments.length > 0 && (
-                <div className="attachments">
-                  <h4>Attachments</h4>
-                  <ul>
-                    {task.attachments.map(attachment => (
-                      <li key={attachment.id}>
-                        <a href={attachment.downloadUrl} target="_blank" rel="noopener noreferrer">
-                          {attachment.name}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <div className="task-description">
+                {task.description || <em>No description</em>}
+              </div>
+              
+              <div className="task-meta">
+                {!currentProject && (
+                  <div className="task-project">
+                    <strong>Project:</strong> {
+                      projects.find(p => p.id === task.projectId)?.title || 'Unknown'
+                    }
+                  </div>
+                )}
+                
+                {task.dueDate && (
+                  <div className="task-due-date">
+                    <strong>Due:</strong> {new Date(task.dueDate).toLocaleDateString()}
+                  </div>
+                )}
+              </div>
+              
+              <div className="card-actions">
+                <button
+                  className="danger-button"
+                  onClick={() => handleDeleteTask(task.id)}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           ))
         )}

@@ -5,8 +5,8 @@
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "methods": ["get", "post", "patch", "delete"],
-      "route": "tasks/{id?}"
+      "methods": ["get", "post"],
+      "route": "projects/{projectId}/tasks"
     },
     {
       "type": "http",
@@ -14,5 +14,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/tasks/index.js"
+  "scriptFile": "../dist/project-tasks/index.js"
 } 
