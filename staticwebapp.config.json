@@ -1,19 +1,22 @@
 {
   "routes": [
     {
+      "route": "/.auth/*",
+      "allowedRoles": ["anonymous"]
+    },
+    {
       "route": "/api/*",
       "methods": ["GET", "POST", "PUT", "PATCH", "DELETE"],
       "allowedRoles": ["authenticated"]
     },
     {
       "route": "/*",
-      "serve": "/index.html",
-      "statusCode": 200
+      "allowedRoles": ["authenticated"]
     }
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/images/*.{png,jpg,gif}", "/css/*", "/js/*", "/api/*"]
+    "exclude": ["/images/*.{png,jpg,gif}", "/css/*", "/js/*", "/api/*", "/.auth/*"]
   },
   "responseOverrides": {
     "404": {
@@ -25,9 +28,9 @@
     "identityProviders": {
       "azureActiveDirectory": {
         "registration": {
-          "openIdIssuer": "https://login.microsoftonline.com/<tenant-id>/v2.0",
-          "clientIdSettingName": "AZURE_CLIENT_ID",
-          "clientSecretSettingName": "AZURE_CLIENT_SECRET"
+          "openIdIssuer": "https://login.microsoftonline.com/854e713d-2b19-4c53-be6b-d7ff55e01534/v2.0",
+          "clientIdSettingName": "VITE_AAD_CLIENT_ID",
+          "clientSecretSettingName": "AAD_CLIENT_SECRET"
         }
       }
     }
