@@ -17,9 +17,15 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.app-header-left {
+  display: flex;
+  align-items: center;
+}
+
 .app-header h1 {
   margin: 0;
   font-size: 1.5rem;
+  margin-right: 2rem;
 }
 
 .app-header nav ul {
@@ -41,6 +47,21 @@
 
 .app-header nav ul li a:hover {
   border-bottom: 2px solid white;
+}
+
+.app-header-right {
+  display: flex;
+  align-items: center;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-name {
+  font-weight: 500;
 }
 
 .app-content {
@@ -274,4 +295,40 @@ button {
 .empty-state p {
   margin-bottom: 1.5rem;
   color: #666;
+}
+
+/* Login Page */
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 70vh;
+}
+
+.login-card {
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  padding: 2rem;
+}
+
+.login-card h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #5f50d9;
+}
+
+.login-card p {
+  margin-bottom: 2rem;
+  color: #666;
+}
+
+.login-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.login-actions button {
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
 }

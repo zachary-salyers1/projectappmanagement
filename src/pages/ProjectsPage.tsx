@@ -5,7 +5,7 @@ import { useAuth } from '../auth/AuthProvider';
 
 const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isLoading } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,10 +28,10 @@ const ProjectsPage: React.FC = () => {
       }
     };
 
-    if (isAuthenticated && !isLoading) {
+    if (!isLoading) {
       fetchProjects();
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isLoading]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -73,10 +73,6 @@ const ProjectsPage: React.FC = () => {
   const handleViewTasks = (projectId: string) => {
     navigate(`/tasks?projectId=${projectId}`);
   };
-
-  if (!isAuthenticated && !isLoading) {
-    return <div className="card">Please sign in to view projects.</div>;
-  }
 
   if (loading) {
     return <div className="card">Loading projects...</div>;

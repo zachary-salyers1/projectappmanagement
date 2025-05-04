@@ -28,31 +28,45 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost';
+
 const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Check for existing development login in localStorage
   useEffect(() => {
     const checkUser = async () => {
       try {
-        // SWA auth endpoint
-        const response = await fetch('/.auth/me');
-        const authData = await response.json();
-        
-        if (authData && authData.clientPrincipal) {
-          const { userDetails, userId } = authData.clientPrincipal;
-          setUser({
-            displayName: userDetails,
-            email: userDetails, // Email might be available in a different property
-            id: userId
-          });
+        if (isDevelopment) {
+          // For local development, check localStorage
+          const devUser = localStorage.getItem('dev_user');
+          if (devUser) {
+            setUser(JSON.parse(devUser));
+          } else {
+            setUser(null);
+          }
+          setIsLoading(false);
         } else {
-          setUser(null);
+          // For production, check SWA auth endpoint
+          const response = await fetch('/.auth/me');
+          const authData = await response.json();
+          
+          if (authData && authData.clientPrincipal) {
+            const { userDetails, userId } = authData.clientPrincipal;
+            setUser({
+              displayName: userDetails,
+              email: userDetails, // Email might be available in a different property
+              id: userId
+            });
+          } else {
+            setUser(null);
+          }
+          setIsLoading(false);
         }
       } catch (error) {
         console.error('Error checking authentication:', error);
         setUser(null);
-      } finally {
         setIsLoading(false);
       }
     };
@@ -61,20 +75,31 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async () => {
-    try {
-      // For SWA, redirect to the built-in auth endpoint
+    if (isDevelopment) {
+      // For development, create a mock user
+      const mockUser = {
+        displayName: 'Development User',
+        email: 'dev@example.com',
+        id: 'dev-user-123'
+      };
+      
+      // Store in localStorage for persistence
+      localStorage.setItem('dev_user', JSON.stringify(mockUser));
+      setUser(mockUser);
+    } else {
+      // For production, redirect to Azure AD login
       window.location.href = '/.auth/login/aad';
-    } catch (error) {
-      console.error('Login failed:', error);
     }
   };
 
   const logout = async () => {
-    try {
-      // For SWA, redirect to the built-in logout endpoint
-      window.location.href = '/.auth/logout/aad';
-    } catch (error) {
-      console.error('Logout failed:', error);
+    if (isDevelopment) {
+      // For development, remove from localStorage
+      localStorage.removeItem('dev_user');
+      setUser(null);
+    } else {
+      // For production, use SWA logout
+      window.location.href = '/.auth/logout';
     }
   };
 

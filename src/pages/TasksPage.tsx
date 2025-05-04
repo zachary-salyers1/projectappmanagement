@@ -4,7 +4,7 @@ import { Project, Task, projectsApi, tasksApi } from '../services/api';
 import { useAuth } from '../auth/AuthProvider';
 
 const TasksPage: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const projectIdParam = searchParams.get('projectId');
@@ -44,10 +44,10 @@ const TasksPage: React.FC = () => {
       }
     };
 
-    if (isAuthenticated && !isLoading) {
+    if (!isLoading) {
       fetchProjects();
     }
-  }, [isAuthenticated, isLoading, selectedProjectId]);
+  }, [isLoading, selectedProjectId]);
 
   // Fetch tasks when selectedProjectId changes
   useEffect(() => {
@@ -68,10 +68,10 @@ const TasksPage: React.FC = () => {
       }
     };
 
-    if (isAuthenticated && !isLoading) {
+    if (!isLoading) {
       fetchTasks();
     }
-  }, [isAuthenticated, isLoading, selectedProjectId]);
+  }, [isLoading, selectedProjectId]);
 
   // Update URL when selected project changes
   useEffect(() => {
@@ -151,10 +151,6 @@ const TasksPage: React.FC = () => {
       console.error(err);
     }
   };
-
-  if (!isAuthenticated && !isLoading) {
-    return <div className="card">Please sign in to view tasks.</div>;
-  }
 
   if (loading && projects.length === 0) {
     return <div className="card">Loading tasks...</div>;
