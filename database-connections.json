@@ -1,0 +1,9 @@
+[
+  {
+    "name": "Production",
+    "resourceId": "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Sql/servers/<server-name>/databases/<database-name>",
+    "authentication": {
+      "type": "systemAssignedManagedIdentity"
+    }
+  }
+] 
