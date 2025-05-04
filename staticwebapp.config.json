@@ -5,13 +5,17 @@
       "allowedRoles": ["anonymous"]
     },
     {
+      "route": "/login",
+      "allowedRoles": ["anonymous"]
+    },
+    {
       "route": "/api/*",
       "methods": ["GET", "POST", "PUT", "PATCH", "DELETE"],
       "allowedRoles": ["authenticated"]
     },
     {
       "route": "/*",
-      "allowedRoles": ["authenticated"]
+      "allowedRoles": ["anonymous"]
     }
   ],
   "navigationFallback": {
