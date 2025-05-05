@@ -6,7 +6,7 @@
       "direction": "in",
       "name": "req",
       "methods": ["get"],
-      "route": "db-info"
+      "route": "hello"
     },
     {
       "type": "http",
@@ -14,5 +14,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/db-info/index.js"
+  "scriptFile": "../dist/hello/index.js"
 } 
