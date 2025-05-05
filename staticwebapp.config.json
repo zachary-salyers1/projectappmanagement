@@ -21,6 +21,10 @@
       "allowedRoles": ["anonymous"]
     },
     {
+      "route": "/api/db-simple",
+      "allowedRoles": ["anonymous"]
+    },
+    {
       "route": "/api/projects",
       "methods": ["GET"],
       "allowedRoles": ["anonymous"]

@@ -1,18 +1,27 @@
 // Project service for API interactions
 import { Project, Task } from '../types';
 
-// We'll try both endpoints
-const API_BASE_URL = '/api';
+// The endpoint that now works with direct SQL access
+const DB_SIMPLE_URL = '/api/db-simple';
+
+// We'll try multiple endpoints for reliability
 const DAB_API_BASE_URL = '/api/data';
+const API_BASE_URL = '/api';
 
 export const projectService = {
   // Get all projects
   async getProjects(): Promise<Project[]> {
     try {
-      // Try Data API Builder endpoint first
-      const response = await fetch(`${DAB_API_BASE_URL}/Projects`);
+      // Try our direct SQL endpoint first
+      const response = await fetch(DB_SIMPLE_URL);
       if (response.ok) {
-        const data = await response.json();
+        return await response.json();
+      }
+      
+      // Try Data API Builder endpoint next
+      const dabResponse = await fetch(`${DAB_API_BASE_URL}/Projects`);
+      if (dabResponse.ok) {
+        const data = await dabResponse.json();
         return data.value || [];
       }
       
@@ -31,10 +40,16 @@ export const projectService = {
   // Get a single project by ID
   async getProject(id: number): Promise<Project | null> {
     try {
-      // Try Data API Builder endpoint first
-      const response = await fetch(`${DAB_API_BASE_URL}/Projects/${id}`);
+      // Try direct SQL endpoint first
+      const response = await fetch(`${DB_SIMPLE_URL}?id=${id}`);
       if (response.ok) {
         return await response.json();
+      }
+      
+      // Try Data API Builder endpoint next
+      const dabResponse = await fetch(`${DAB_API_BASE_URL}/Projects/${id}`);
+      if (dabResponse.ok) {
+        return await dabResponse.json();
       }
       
       // Fallback to Azure Function endpoint
@@ -52,7 +67,20 @@ export const projectService = {
   // Create a new project
   async createProject(project: Omit<Project, 'projectId'>): Promise<Project | null> {
     try {
-      // Try creating using stored procedure first
+      // Try direct SQL endpoint first
+      const response = await fetch(DB_SIMPLE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(project),
+      });
+      
+      if (response.ok) {
+        return await response.json();
+      }
+      
+      // Try creating using stored procedure next
       const spResponse = await fetch(`${DAB_API_BASE_URL}/CreateProject`, {
         method: 'POST',
         headers: {

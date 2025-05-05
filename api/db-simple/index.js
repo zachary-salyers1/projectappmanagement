@@ -1,130 +1,95 @@
 const sql = require('mssql');
 
+// Configuration for direct SQL connection
+const sqlConfig = {
+  user: 'test_app_user',
+  password: 'ProjectApp2024!',
+  server: 'salyersaipmapp.database.windows.net',
+  database: 'ProjectManageApp',
+  options: {
+    encrypt: true,
+    trustServerCertificate: false
+  }
+};
+
 module.exports = async function (context, req) {
+  context.log('JavaScript HTTP trigger function processed a request.');
+  
   try {
-    context.log("Starting simple database test");
+    // Connect to SQL
+    let pool = await sql.connect(sqlConfig);
+    context.log("Connected to SQL database");
     
-    // Log identity info
-    const identityEnabled = process.env.IDENTITY_ENDPOINT ? "Yes" : "No";
-    context.log(`Identity enabled: ${identityEnabled}`);
-    
-    // Use a timeout to ensure we don't hang indefinitely
-    const timeout = 20000; // 20 seconds
-    
-    // Create a SQL connection config
-    const sqlConfig = {
-      server: 'salyersaipmapp.database.windows.net',
-      database: 'ProjectManageApp',
-      authentication: {
-        type: 'azure-active-directory-msi-app-service'
-      },
-      options: {
-        encrypt: true
-      },
-      connectionTimeout: timeout,
-      requestTimeout: timeout,
-      pool: {
-        max: 5,
-        min: 1,
-        idleTimeoutMillis: timeout
-      }
-    };
-    
-    try {
-      context.log("Connecting to database...");
-      const pool = await sql.connect(sqlConfig);
-      context.log("Connected successfully!");
+    // Handle different method types
+    if (req.method === "GET") {
+      // GET request - return all projects or a specific project
+      const projectId = req.query.id;
       
-      const result = await pool.request().query('SELECT 1 as success');
-      context.log(`Query result: ${JSON.stringify(result.recordset)}`);
-      
-      await pool.close();
-      context.log("Connection closed");
-      
-      return {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: {
-          success: true,
-          message: "Connected to database successfully",
-          result: result.recordset,
-          config: {
-            server: sqlConfig.server,
-            database: sqlConfig.database,
-            authType: sqlConfig.authentication.type
-          }
+      if (projectId) {
+        // Get specific project
+        const result = await pool.request()
+          .input('projectId', sql.Int, projectId)
+          .query('SELECT * FROM Projects WHERE ProjectId = @projectId');
+        
+        if (result.recordset.length === 0) {
+          context.res = { status: 404, body: { error: "Project not found" } };
+        } else {
+          context.res = { status: 200, body: result.recordset[0] };
         }
-      };
-    } catch (dbError) {
-      context.log.error(`Database error: ${dbError.message}`);
-      if (dbError.code) context.log.error(`Error code: ${dbError.code}`);
-      if (dbError.number) context.log.error(`SQL error number: ${dbError.number}`);
-      
-      // Try system-assigned identity as fallback
-      try {
-        context.log("Trying system-assigned identity as fallback...");
-        const sysConfig = {
-          server: 'salyersaipmapp.database.windows.net',
-          database: 'ProjectManageApp',
-          authentication: {
-            type: 'default'
-          },
-          options: {
-            encrypt: true
-          }
-        };
+      } else {
+        // Get all projects
+        const result = await pool.request()
+          .query('SELECT * FROM Projects ORDER BY CreatedAt DESC');
         
-        const pool2 = await sql.connect(sysConfig);
-        const result2 = await pool2.request().query('SELECT 1 as success');
-        await pool2.close();
-        
-        return {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: {
-            success: true,
-            message: "Connected to database using system-assigned identity",
-            result: result2.recordset
-          }
-        };
-      } catch (sysError) {
-        context.log.error(`System identity error: ${sysError.message}`);
-        
-        return {
-          status: 500,
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: {
-            success: false,
-            message: "Failed to connect to database",
-            userAssignedError: dbError.message,
-            systemAssignedError: sysError.message,
-            identityInfo: {
-              enabled: identityEnabled,
-              resourceId: process.env.WEBSITE_RUN_FROM_PACKAGE_BLOB_MI_RESOURCE_ID || "Not available"
-            }
-          }
-        };
+        context.res = { status: 200, body: result.recordset };
       }
+    } 
+    else if (req.method === "POST") {
+      // POST request - create a new project
+      const project = req.body;
+      
+      if (!project || !project.name) {
+        context.res = { status: 400, body: { error: "Project name is required" } };
+        return;
+      }
+      
+      // Insert new project using standard parameters
+      const result = await pool.request()
+        .input('name', sql.NVarChar, project.name)
+        .input('description', sql.NVarChar, project.description || null)
+        .input('startDate', sql.DateTime, project.startDate ? new Date(project.startDate) : null)
+        .input('dueDate', sql.DateTime, project.dueDate ? new Date(project.dueDate) : null)
+        .input('status', sql.NVarChar, project.status || 'Not Started')
+        .input('priority', sql.Int, project.priority || 2)
+        .input('owner', sql.NVarChar, project.owner || null)
+        .query(`
+          INSERT INTO Projects (Name, Description, StartDate, DueDate, Status, Priority, Owner, CreatedAt, UpdatedAt)
+          VALUES (@name, @description, @startDate, @dueDate, @status, @priority, @owner, GETDATE(), GETDATE());
+          
+          DECLARE @newId INT = SCOPE_IDENTITY();
+          
+          SELECT * FROM Projects WHERE ProjectId = @newId;
+        `);
+      
+      context.res = {
+        status: 201,
+        body: result.recordset[0]
+      };
     }
-  } catch (error) {
-    context.log.error(`General error: ${error.message}`);
     
-    return {
+    // Close the connection
+    await pool.close();
+    
+  } catch (error) {
+    context.log.error("Database error:", error);
+    
+    // Return error with details
+    context.res = {
       status: 500,
-      headers: {
-        'Content-Type': 'application/json'
-      },
       body: {
-        success: false,
-        message: "Failed due to general error",
-        error: error.message,
-        stack: error.stack
+        error: "Database operation failed",
+        message: error.message,
+        code: error.code || null
       }
     };
   }
