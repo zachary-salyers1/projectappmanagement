@@ -94,6 +94,30 @@
           "role": "anonymous"
         }
       ]
+    },
+    "CreateTask": {
+      "source": "dbo.CreateTask",
+      "rest": {
+        "methods": ["post"]
+      },
+      "permissions": [
+        {
+          "actions": ["execute"],
+          "role": "anonymous"
+        }
+      ]
+    },
+    "UpdateTask": {
+      "source": "dbo.UpdateTask",
+      "rest": {
+        "methods": ["post"]
+      },
+      "permissions": [
+        {
+          "actions": ["execute"],
+          "role": "anonymous"
+        }
+      ]
     }
   }
 } 

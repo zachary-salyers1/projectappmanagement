@@ -71,4 +71,50 @@ BEGIN
   
   SELECT * FROM Projects WHERE ProjectId = @ProjectId;
 END
+GO
+
+-- Create stored procedure for creating a new task
+CREATE PROCEDURE CreateTask
+  @ProjectId INT,
+  @Title NVARCHAR(200),
+  @Description NVARCHAR(1000) = NULL,
+  @Status NVARCHAR(50) = 'To Do',
+  @Priority INT = 2,
+  @AssignedTo NVARCHAR(100) = NULL,
+  @DueDate DATETIME = NULL
+AS
+BEGIN
+  INSERT INTO Tasks (ProjectId, Title, Description, Status, Priority, AssignedTo, DueDate)
+  VALUES (@ProjectId, @Title, @Description, @Status, @Priority, @AssignedTo, @DueDate);
+  
+  SELECT SCOPE_IDENTITY() AS TaskId;
+END
+GO
+
+-- Create stored procedure for updating a task
+CREATE PROCEDURE UpdateTask
+  @TaskId INT,
+  @Title NVARCHAR(200) = NULL,
+  @Description NVARCHAR(1000) = NULL,
+  @Status NVARCHAR(50) = NULL,
+  @Priority INT = NULL,
+  @AssignedTo NVARCHAR(100) = NULL,
+  @DueDate DATETIME = NULL,
+  @CompletedDate DATETIME = NULL
+AS
+BEGIN
+  UPDATE Tasks
+  SET 
+    Title = ISNULL(@Title, Title),
+    Description = @Description, -- Allow NULL for description
+    Status = ISNULL(@Status, Status),
+    Priority = ISNULL(@Priority, Priority),
+    AssignedTo = @AssignedTo, -- Allow NULL for AssignedTo
+    DueDate = @DueDate, -- Allow NULL for DueDate
+    CompletedDate = @CompletedDate, -- Allow NULL for CompletedDate
+    UpdatedAt = GETDATE()
+  WHERE TaskId = @TaskId;
+  
+  SELECT * FROM Tasks WHERE TaskId = @TaskId;
+END
 GO 
