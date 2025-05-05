@@ -9,28 +9,12 @@ export default async function dbTest(request: HttpRequest, context: InvocationCo
     const envKeys = Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('KEY') && !k.includes('PASSWORD'));
     context.log(`Available environment variables: ${envKeys.join(', ')}`);
     
-    // Check connection string
-    // Azure Static Web Apps Database Connections feature adds this environment variable
-    let connStr = process.env["SQLCONNSTR_SqlConnectionString"];
-    if (!connStr) {
-      // Fallback to regular environment variable
-      connStr = process.env["SqlConnectionString"];
-    }
+    // Use explicit connection string for testing
+    const connStr = "Server=tcp:salyersaipmapp.database.windows.net,1433;Initial Catalog=ProjectManageApp;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=\"Active Directory Default\";";
     
-    if (!connStr) {
-      context.log.error("Connection string environment variable is not set");
-      return {
-        status: 500,
-        jsonBody: {
-          success: false,
-          message: "SQL connection string environment variable is not set. Please check Azure Static Web App configuration."
-        }
-      };
-    }
+    context.log("Using explicit connection string (hidden for security)");
     
-    context.log("Connection string found (hidden for security)");
-    
-    // When using managed identity, don't use explicit token-based auth
+    // Use connection configuration
     const config: sql.config = {
       connectionString: connStr,
       options: { 
@@ -40,13 +24,12 @@ export default async function dbTest(request: HttpRequest, context: InvocationCo
       }
     };
     
-    context.log("Attempting to connect to SQL database with config:", JSON.stringify({
-      ...config,
-      connectionString: "[HIDDEN]" // Don't log the connection string
-    }));
+    context.log("Attempting to connect to SQL database...");
     
     try {
       const pool = new sql.ConnectionPool(config);
+      context.log("Created connection pool");
+      
       await pool.connect();
       context.log("Connected successfully");
       
