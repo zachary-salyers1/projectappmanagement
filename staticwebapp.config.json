@@ -25,6 +25,10 @@
       "allowedRoles": ["anonymous"]
     },
     {
+      "route": "/api/db-diagnostic",
+      "allowedRoles": ["anonymous"]
+    },
+    {
       "route": "/api/projects",
       "methods": ["GET"],
       "allowedRoles": ["anonymous"]
