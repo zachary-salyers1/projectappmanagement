@@ -1,21 +1,32 @@
--- Option 1: Try with the app name first
+-- Try with various formats for the managed identity name
+
+-- Option 1: App name
 CREATE USER [salyersaipmapp] FROM EXTERNAL PROVIDER;
 ALTER ROLE db_datareader ADD MEMBER [salyersaipmapp];
 ALTER ROLE db_datawriter ADD MEMBER [salyersaipmapp];
 
--- If Option 1 fails, try with full resource ID format (uncomment and update with your values)
+-- Option 2: Static Web App hostname
 /*
-DECLARE @MIName VARCHAR(128) = 'salyersaipmapp';
-DECLARE @SubscriptionId VARCHAR(36) = 'YOUR-SUBSCRIPTION-ID'; -- Replace with your subscription ID
-DECLARE @ResourceGroup VARCHAR(128) = 'Salyersai'; -- Replace with your resource group name
+CREATE USER [victorious-field-05d13d20f] FROM EXTERNAL PROVIDER;
+ALTER ROLE db_datareader ADD MEMBER [victorious-field-05d13d20f];
+ALTER ROLE db_datawriter ADD MEMBER [victorious-field-05d13d20f];
+*/
 
-DECLARE @FullIdentityName NVARCHAR(MAX) = 
-    'mi_' + @MIName + '_' + @SubscriptionId + '_' + @ResourceGroup;
+-- Option 3: Try with spn_ prefix (common for service principals)
+/*
+CREATE USER [spn_salyersaipmapp] FROM EXTERNAL PROVIDER;
+ALTER ROLE db_datareader ADD MEMBER [spn_salyersaipmapp];
+ALTER ROLE db_datawriter ADD MEMBER [spn_salyersaipmapp];
+*/
 
+-- Option 4: Try with object ID directly from portal 
+-- (Go to Static Web App > Identity > System Assigned > Copy Object ID)
+/*
+-- Replace with your object ID
+DECLARE @ObjectID NVARCHAR(128) = 'YOUR-MANAGED-IDENTITY-OBJECT-ID';
 DECLARE @sql NVARCHAR(MAX) = 
-    'CREATE USER [' + @FullIdentityName + '] FROM EXTERNAL PROVIDER;' + 
-    'ALTER ROLE db_datareader ADD MEMBER [' + @FullIdentityName + '];' + 
-    'ALTER ROLE db_datawriter ADD MEMBER [' + @FullIdentityName + '];';
-
+    'CREATE USER [' + @ObjectID + '] FROM EXTERNAL PROVIDER;' + 
+    'ALTER ROLE db_datareader ADD MEMBER [' + @ObjectID + '];' + 
+    'ALTER ROLE db_datawriter ADD MEMBER [' + @ObjectID + '];';
 EXEC sp_executesql @sql;
 */ 

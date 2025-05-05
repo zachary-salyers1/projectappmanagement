@@ -6,12 +6,12 @@ module.exports = async function (context, req) {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
+      body: {
         message: "Hello from Azure Static Web App Function",
         timestamp: new Date().toISOString(),
-        requestUrl: req.url,
+        requestPath: req.url,
         method: req.method
-      })
+      }
     };
   } catch (error) {
     // Comprehensive error handling
@@ -20,10 +20,10 @@ module.exports = async function (context, req) {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
+      body: {
         error: error instanceof Error ? error.message : "Unknown error",
         timestamp: new Date().toISOString()
-      })
+      }
     };
   }
 } 
