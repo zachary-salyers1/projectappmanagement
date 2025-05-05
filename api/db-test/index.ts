@@ -4,73 +4,67 @@ import * as sql from "mssql";
 
 const dbTest: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   try {
-    context.log("Starting db-test function");
-    const cred = new DefaultAzureCredential();
-    context.log("Getting token");
-    const token = await cred.getToken("https://database.windows.net/.default");
-    context.log("Got token, setting up connection");
+    // Get a token from Azure AD
+    const credential = new DefaultAzureCredential();
+    const token = await credential.getToken("https://database.windows.net/.default");
     
-    const connStr = process.env["SQLCONNSTR_SqlConnectionString"];
-    if (!connStr) {
-      context.log.error("Connection string not found");
-      context.res = {
-        status: 500,
-        body: { error: "Database connection string not found" }
-      };
-      return;
+    // Get connection string from environment
+    const connStr = process.env["SQLCONNSTR_SqlConnectionString"] || "";
+    
+    // Parse connection info from connection string if available
+    let server = "salyersaipmapp.database.windows.net";
+    let database = "ProjectManageApp";
+    
+    if (connStr) {
+      const connParts = connStr.split(';');
+      for (const part of connParts) {
+        if (part.toLowerCase().startsWith('server=')) server = part.split('=')[1];
+        if (part.toLowerCase().startsWith('database=')) database = part.split('=')[1];
+      }
     }
     
-    context.log("Connection string:", connStr);
-    
+    // Create connection config with AAD token
     const config: sql.config = {
-      connectionString: connStr,
-      options: { encrypt: true },
+      server,
+      database,
+      options: {
+        encrypt: true,
+        trustServerCertificate: false
+      },
       authentication: {
-        type: "azure-active-directory-access-token",
-        options: { token: token.token }
+        type: 'azure-active-directory-access-token',
+        options: {
+          token: token.token
+        }
       }
     };
     
-    context.log("Connecting to database");
+    // Connect and run test query
     await sql.connect(config);
-    context.log("Connected to database, executing query");
-    
     const result = await sql.query`SELECT 1 AS isConnected`;
-    context.log("Query executed");
     
     context.res = {
       status: 200,
       body: {
-        message: "Database connection successful",
-        result: result.recordset[0]
+        success: true,
+        message: "Connected successfully using AAD authentication",
+        data: result.recordset[0]
       }
     };
-  } catch (e: any) {
-    context.log.error("Database connection failed:", e);
-    context.log.error("Error message:", e.message);
-    context.log.error("Error stack:", e.stack);
-    
-    let errorDetails = {
-      message: e.message,
-      stack: e.stack,
-      name: e.name
-    };
-    
-    if (e.code) {
-      errorDetails = { ...errorDetails, code: e.code };
-    }
-    
-    if (e.number) {
-      errorDetails = { ...errorDetails, sqlErrorNumber: e.number };
-    }
-    
+  } catch (e) {
+    context.log.error(e);
     context.res = {
       status: 500,
       body: {
-        error: "Database connection failed",
-        details: errorDetails
+        success: false,
+        message: e.message,
+        details: e.toString()
       }
     };
+  } finally {
+    try {
+      await sql.close();
+    } catch {}
   }
 };
 
