@@ -3,9 +3,11 @@
   "data-source": {
     "database-type": "mssql",
     "options": {
-      "set-session-context": false 
-    },
-    "connection-string": "Server=tcp:salyersaipmapp.database.windows.net,1433;Initial Catalog=ProjectManageApp;Encrypt=True;TrustServerCertificate=False;Authentication=Active Directory Default;"
+      "set-session-context": false,
+      "server": "salyersaipmapp.database.windows.net",
+      "database": "ProjectManageApp",
+      "authentication": "AzureAD"
+    }
   },
   "runtime": {
     "rest": {

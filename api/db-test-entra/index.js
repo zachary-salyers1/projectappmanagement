@@ -4,16 +4,23 @@ module.exports = async function (context, req) {
   try {
     context.log("Starting Microsoft Entra authentication database test");
     
-    // Connection string using Microsoft Entra authentication (Active Directory Default)
-    const connStr = "Server=tcp:salyersaipmapp.database.windows.net,1433;Initial Catalog=ProjectManageApp;Encrypt=True;TrustServerCertificate=False;Authentication=Active Directory Default;";
+    // Using explicit configuration properties instead of connection string
+    const config = {
+      server: 'salyersaipmapp.database.windows.net',
+      database: 'ProjectManageApp',
+      port: 1433,
+      options: {
+        encrypt: true,
+        trustServerCertificate: false,
+        authentication: 'azure-active-directory-default'
+      }
+    };
     
-    context.log("Using Microsoft Entra authentication");
+    context.log("Using Microsoft Entra authentication with explicit config");
     
     try {
-      // Create connection with default config
-      const pool = new sql.ConnectionPool({
-        connectionString: connStr
-      });
+      // Create connection with explicit config
+      const pool = new sql.ConnectionPool(config);
       
       context.log("Connecting to database...");
       await pool.connect();

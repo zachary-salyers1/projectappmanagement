@@ -6,38 +6,43 @@ module.exports = async function (context, req) {
     
     // Check query parameter for auth type
     const authType = req.query.auth || "default";
-    let connStr = "";
+    let config = {
+      server: 'salyersaipmapp.database.windows.net',
+      database: 'ProjectManageApp',
+      port: 1433,
+      options: {
+        encrypt: true,
+        trustServerCertificate: false
+      }
+    };
     
-    // Try different authentication methods based on query parameter
+    // Set authentication method based on query parameter
     switch (authType.toLowerCase()) {
       case "sql":
-        // Using the SQL user created in the database
-        connStr = "Server=tcp:salyersaipmapp.database.windows.net,1433;Initial Catalog=ProjectManageApp;Encrypt=True;TrustServerCertificate=False;User Id=ProjectAppUser;Password=StrongP@ssword123!;";
+        // Using SQL authentication
+        config.user = 'ProjectAppUser';
+        config.password = 'StrongP@ssword123!';
         break;
         
       case "msi":
-        // Try different MSI format
-        connStr = "Server=tcp:salyersaipmapp.database.windows.net,1433;Initial Catalog=ProjectManageApp;Encrypt=True;TrustServerCertificate=False;Authentication=ActiveDirectoryMSI;";
+        // Using Managed Identity
+        config.options.authentication = 'azure-active-directory-msi-app-service';
         break;
         
       case "service":
-        // For service principal authentication (would need to be configured)
-        // WARNING: Replace placeholders with actual values for testing
-        connStr = "Server=tcp:salyersaipmapp.database.windows.net,1433;Initial Catalog=ProjectManageApp;Encrypt=True;TrustServerCertificate=False;Authentication=ActiveDirectoryServicePrincipal;User Id=APP_ID;Password=APP_SECRET;";
+        // For service principal (would need real values)
+        config.options.authentication = 'azure-active-directory-service-principal-secret';
+        config.user = 'YOUR_APP_ID'; // Replace with real app ID
+        config.password = 'YOUR_APP_SECRET'; // Replace with real secret
         break;
         
       default:
-        // Use active directory default
-        connStr = "Server=tcp:salyersaipmapp.database.windows.net,1433;Initial Catalog=ProjectManageApp;Encrypt=True;TrustServerCertificate=False;Authentication=Active Directory Default;";
+        // Active Directory Default
+        config.options.authentication = 'azure-active-directory-default';
         break;
     }
     
     context.log(`Using auth type: ${authType}`);
-    
-    // Configuration for SQL connection
-    const config = {
-      connectionString: connStr
-    };
     
     try {
       // Test connection
