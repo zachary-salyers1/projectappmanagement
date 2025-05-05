@@ -10,11 +10,12 @@ module.exports = async function (context, req) {
     const identityInfo = {
       enabled: process.env.IDENTITY_ENDPOINT ? true : false,
       endpoint: process.env.IDENTITY_ENDPOINT || 'not available',
-      headerName: process.env.IDENTITY_HEADER ? 'available' : 'not available'
+      headerName: process.env.IDENTITY_HEADER ? 'available' : 'not available',
+      resourceId: process.env.WEBSITE_RUN_FROM_PACKAGE_BLOB_MI_RESOURCE_ID || 'not available'
     };
     
     // Log what we're trying to do
-    context.log("Creating connection to database using direct tedious driver");
+    context.log("Creating connection to database using user-assigned managed identity");
     
     let connectionSuccess = false;
     let errorMessage = '';
@@ -24,7 +25,11 @@ module.exports = async function (context, req) {
       const config = {
         server: 'salyersaipmapp.database.windows.net',
         authentication: {
-          type: 'azure-active-directory-msi-app-service'
+          type: 'azure-active-directory-msi-app-service',
+          options: {
+            // Explicitly set the clientId to use the user-assigned managed identity
+            clientId: '6aa1e9bbbc6a47319fe8d20522571a8c-mi'
+          }
         },
         options: {
           database: 'ProjectManageApp',
@@ -89,6 +94,7 @@ module.exports = async function (context, req) {
           "Failed to connect to database directly",
         error: errorMessage,
         identity: identityInfo,
+        resourceId: process.env.WEBSITE_RUN_FROM_PACKAGE_BLOB_MI_RESOURCE_ID,
         timestamp: new Date().toISOString()
       }
     };
