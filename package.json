@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:api": "tsc -p api/tsconfig.json",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start:api": "npm run build:api && func start --script-root api/dist"
   },
   "dependencies": {
     "@azure/functions": "^4.7.0",
@@ -22,6 +24,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
+    "@types/node": "^20.11.25",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",

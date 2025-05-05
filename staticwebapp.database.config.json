@@ -1,0 +1,7 @@
+{
+  "connectionStrings": {
+    "SqlConnectionString": {
+      "connectionString": "Server=salyersaipmapp.database.windows.net;Database=projectmanageapp;Authentication=ActiveDirectoryMSI"
+    }
+  }
+} 
