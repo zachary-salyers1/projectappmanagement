@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-ro
 import { MsalProvider } from '@azure/msal-react'
 import { PublicClientApplication } from '@azure/msal-browser'
 import './App.css'
+import ProjectList from './components/ProjectList'
+import ProjectForm from './components/ProjectForm'
 
 // Import pages
 import ProjectsPage from './pages/ProjectsPage'
@@ -86,6 +88,10 @@ function App() {
                 <Route path="/" element={<ProtectedRoute element={<ProjectsPage />} />} />
                 <Route path="/tasks" element={<ProtectedRoute element={<TasksPage />} />} />
                 <Route path="/billing" element={<ProtectedRoute element={<BillingPage />} />} />
+                <Route path="/projects" element={<ProjectList />} />
+                <Route path="/projects/new" element={<ProjectForm />} />
+                <Route path="/projects/:id" element={<ProjectDetails />} />
+                <Route path="/projects/:id/edit" element={<ProjectForm isEditMode={true} />} />
               </Routes>
             </main>
           </div>
@@ -93,6 +99,18 @@ function App() {
       </AuthProvider>
     </MsalProvider>
   )
+}
+
+// Placeholder for ProjectDetails - will be implemented later
+function ProjectDetails() {
+  return (
+    <div className="text-center py-10">
+      <p>Project details view coming soon...</p>
+      <Link to="/projects" className="text-blue-600 hover:underline mt-4 inline-block">
+        Back to Projects
+      </Link>
+    </div>
+  );
 }
 
 export default App

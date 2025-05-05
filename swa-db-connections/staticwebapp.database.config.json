@@ -12,17 +12,17 @@
   "runtime": {
     "rest": {
       "enabled": true,
-      "path": "/rest"
+      "path": "/api/data"
     },
     "graphql": {
       "allow-introspection": true,
       "enabled": true,
-      "path": "/graphql"
+      "path": "/api/graphql"
     },
     "host": {
       "mode": "production",
       "cors": {
-        "origins": ["http://localhost:4280"],
+        "origins": ["http://localhost:4280", "https://victorious-field-05d13d20f.6.azurestaticapps.net"],
         "allow-credentials": false
       },
       "authentication": {
@@ -35,16 +35,62 @@
       "source": "dbo.Projects",
       "permissions": [
         {
-          "actions": ["create", "read", "update", "delete"],
+          "actions": ["*"],
           "role": "anonymous"
         }
-      ]
+      ],
+      "relationships": {
+        "Tasks": {
+          "cardinality": "many",
+          "target.entity": "Tasks",
+          "linking.object": "ProjectId",
+          "linking.target": "ProjectId"
+        }
+      },
+      "rest": {
+        "methods": ["get", "post", "put", "delete", "patch"]
+      }
     },
     "Tasks": {
       "source": "dbo.Tasks",
       "permissions": [
         {
-          "actions": ["create", "read", "update", "delete"],
+          "actions": ["*"],
+          "role": "anonymous"
+        }
+      ],
+      "relationships": {
+        "Project": {
+          "cardinality": "one",
+          "target.entity": "Projects",
+          "linking.object": "ProjectId",
+          "linking.target": "ProjectId"
+        }
+      },
+      "rest": {
+        "methods": ["get", "post", "put", "delete", "patch"]
+      }
+    },
+    "CreateProject": {
+      "source": "dbo.CreateProject",
+      "rest": {
+        "methods": ["post"]
+      },
+      "permissions": [
+        {
+          "actions": ["execute"],
+          "role": "anonymous"
+        }
+      ]
+    },
+    "UpdateProject": {
+      "source": "dbo.UpdateProject",
+      "rest": {
+        "methods": ["post"]
+      },
+      "permissions": [
+        {
+          "actions": ["execute"],
           "role": "anonymous"
         }
       ]
